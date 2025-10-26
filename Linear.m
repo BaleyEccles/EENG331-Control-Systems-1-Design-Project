@@ -1,5 +1,7 @@
+clc
+clear
+close all
 %% Plant Configuration
-
 Do1 = 6e-3;                     % m
 Do2 = 3e-3;                     % m
 D1 = 4.5e-2;                    % m
@@ -7,7 +9,7 @@ D2 = 4.5e-2;                    % m
 Cd1=0.8;                        % unitless
 Cd2=0.8;                        % unitless
 
-Kpump = 2e-5;                   % L/s/V              
+Kpump = 0.0000035;                   % L/s/V              
 
 % Calculation of orifice areas
 Ao1 = (pi/4)*(Do1)^2;           % m^2
@@ -22,12 +24,6 @@ h10=h20*Ao2*Cd2/(Ao1*Cd1);      % Calculate h10 from h20.
 
 %% Controller
 
-% note these are just placeholder values
-Kp=100;                         % V/m
-Ki=1;                           % V/ms
-Kd=100;                         % Vs/m
-Tf=100;                         % s
-
 g=9.81;
 
 %% Systems
@@ -40,7 +36,7 @@ Gqo1 = zpk([],[],Ao1*Cd1*sqrt(2*g)/(2*sqrt(h10)));              % Tank 1 qo1/h1
 
 Gh2 = zpk([],-Ao2*Cd2*sqrt(2*g)/(A2*2*sqrt(h20)),1/A2);         % Tank 2 h2/qo1
 
-Gpid = tf([(Kd+Kp*Tf), (Kp + Ki*Tf), Ki],[Tf, 1, 0]);           % Cascade controller
+Gpd = tf(1, [1, 0.3648]);           % Cascade controller
 
 %% Simulation
 
@@ -48,37 +44,44 @@ Tunc = feedback(Gpump*Gh1*Gqo1*Gh2,1);      % Uncompensated negative unity feedb
 
 Dunc = feedback(Gh2,Gpump*Gh1*Gqo1);        % Uncompensated disturbance response
 
-T = feedback(Gpid*Gpump*Gh1*Gqo1*Gh2,1);    % Negative unity feedback
+T = feedback(Gpd*Gpump*Gh1*Gqo1*Gh2,1);    % Negative unity feedback
 
-D = feedback(Gh2,Gpid*Gpump*Gh1*Gqo1);      % Disturbance response
+D = feedback(Gh2,Gpd*Gpump*Gh1*Gqo1);      % Disturbance response
 
 %% Responses
 % Poles/zeros + rlocus
 figure
-subplot(1,3,1)
 pzplot(Gpump*Gh1*Gqo1*Gh2)
 hold on
-pzplot(Gpid)
-legend({'Uncompensated','PID'})
+print("Pole_Zero.png", "-dpng")
+%pzplot(Gpd)
+%legend({'Uncompensated','PID'})
 title('Open Loop Pole Zero Plot')
 
-subplot(1,3,2)
-rlocusplot(Gpid*Gpump*Gh1*Gqo1*Gh2);
-title('Compensated Root Locus');
+figure;
+rlocusplot(Gpump*Gh1*Gqo1*Gh2);
+title('Uncompensated Root Locus');
+print("Root_Locus.png", "-dpng")
 
-subplot(1,3,3)
+figure;
+rlocusplot(Gpd*Gpump*Gh1*Gqo1*Gh2);
+title('Compensated Root Locus');
+print("Comp_Root_Locus.png", "-dpng")
+
+figure;
 pzplot(T);
 title('Compensated Closed Loop Poles/Zeros');
+print("Compenstated_CL_PZ.png", "-dpng")
 
 % Time responses
 % Open Loop
-figure
-subplot(1,2,1)
-step(Tunc,RespConfig('Amplitude',0.01,'Bias',0))
+figure;
+step(Tunc,RespConfig('Amplitude',10e-2,'Bias',0))
 title('Input Response')
+print("Step.png", "-dpng")
 
-subplot(1,2,2)
-step(Dunc,RespConfig('Amplitude',-0.00001,'Bias',0))
+figure;
+step(Dunc,RespConfig('Amplitude',10e-2,'Bias',0))
 title('Disturbance Response')
 
 % Closed loop
@@ -98,7 +101,7 @@ nyquist(Gpump*Gh1*Gqo1*Gh2)
 title('Uncompensated')
 
 subplot(1,2,2)
-nyquist(Gpid*Gpump*Gh1*Gqo1*Gh2)
+nyquist(Gpd*Gpump*Gh1*Gqo1*Gh2)
 title('Compensated')
 
 % Frequency response
@@ -109,6 +112,6 @@ np1.ShowNegativeFrequencies = "off";
 title('Uncompensated')
 
 subplot(1,2,2)
-np2 = nyquistplot(Gpid*Gpump*Gh1*Gqo1*Gh2);
+np2 = nyquistplot(Gpd*Gpump*Gh1*Gqo1*Gh2);
 np2.ShowNegativeFrequencies = "off";
 title('Compensated')
