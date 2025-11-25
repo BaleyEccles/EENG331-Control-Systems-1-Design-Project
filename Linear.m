@@ -30,16 +30,16 @@ g=9.81;
 
 Gpump = zpk([],[],Kpump);                                       % Pump
 
-Gh1 = zpk([],-Ao1*Cd1*sqrt(2*g)/(A1*2*sqrt(h10)),1/A1);         % Tank 1 h1/qi
+Gh1 = zpk([],-Ao1*Cd1*sqrt(2*g)/(A1*2*sqrt(h10)),1/A1)         % Tank 1 h1/qi
 
-Gqo1 = zpk([],[],Ao1*Cd1*sqrt(2*g)/(2*sqrt(h10)));              % Tank 1 qo1/h1
+Gqo1 = zpk([],[],Ao1*Cd1*sqrt(2*g)/(2*sqrt(h10)))              % Tank 1 qo1/h1
 
-Gh2 = zpk([],-Ao2*Cd2*sqrt(2*g)/(A2*2*sqrt(h20)),1/A2);         % Tank 2 h2/qo1
+Gh2 = zpk([],-Ao2*Cd2*sqrt(2*g)/(A2*2*sqrt(h20)),1/A2)         % Tank 2 h2/qo1
 
 Gpd = tf(1, [1, 0.3648]);           % Cascade controller
 
 %% Simulation
-
+Gpump*Gh1*Gqo1*Gh2
 Tunc = feedback(Gpump*Gh1*Gqo1*Gh2,1);      % Uncompensated negative unity feedback
 
 Dunc = feedback(Gh2,Gpump*Gh1*Gqo1);        % Uncompensated disturbance response

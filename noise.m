@@ -10,6 +10,12 @@ time = noise_data.tout;
 h1 = noise_data.measurements.Tank_1_Level__m_.Data;
 h2 = noise_data.measurements.Tank_2_Level__m_.Data;
 step = noise_data.ref_signal.Data;
+
+headers = {'time', 'h1', 'h2', 'step'};
+csv = [time'; h1'; h2'; step']';
+T = array2table(csv);
+csvwrite('Noise.csv', csv)
+
 hold on;
 plot(time, h1)
 plot(time, h2)
